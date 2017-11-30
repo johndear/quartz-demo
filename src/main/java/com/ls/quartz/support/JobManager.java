@@ -5,7 +5,6 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.util.Map;
-import java.util.Set;
 
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
@@ -16,9 +15,9 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.Trigger;
+import org.quartz.Trigger.TriggerState;
 import org.quartz.TriggerKey;
 import org.quartz.impl.StdSchedulerFactory;
-import org.quartz.impl.matchers.GroupMatcher;
 
 import com.ls.quartz.job.HttpJob;
 
@@ -64,9 +63,17 @@ public class JobManager {
             		.withSchedule(scheduleBuilder)
             		.withPriority(triggerPriority)
 					.withDescription(jobDescription).build();
-
-            // 按新的trigger重新设置job执行
-            scheduler.rescheduleJob(triggerKey, trigger);
+            
+            if(scheduler.getTriggerState(triggerKey) == TriggerState.PAUSED){
+            	scheduler.rescheduleJob(triggerKey, trigger);
+            	// 保持之前的状态
+            	scheduler.pauseJob(JobKey.jobKey(jobName, groupName));
+            	return;
+            }
+            
+        	// 按新的trigger重新设置job执行
+        	scheduler.rescheduleJob(triggerKey, trigger);
+            
         } catch (SchedulerException e) {
             System.out.println("更新定时任务失败"+e);
         }
@@ -113,16 +120,10 @@ public class JobManager {
 	}
 	
 	// 检查是否存在指定job
-	public static boolean checkJobIsExist(String jobName, String groupName){
+	public static boolean checkExists(String jobName, String groupName){
 		try {
 			Scheduler scheduler = schedulerFactory.getScheduler();
-			GroupMatcher<JobKey> groupMatcher = GroupMatcher.groupEquals(groupName);
-			Set<JobKey> jobKeySet = scheduler.getJobKeys(groupMatcher);
-			for (JobKey jobKey : jobKeySet) {
-				if (jobKey.getName().equals(jobName)) {
-					return true;
-				}
-			}
+			return scheduler.checkExists(JobKey.jobKey(jobName, groupName));
 		} catch (SchedulerException e) {
 			e.printStackTrace();
 		} 

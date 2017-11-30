@@ -79,7 +79,7 @@ public class QuartzController {
 		jobDataMap.put("url", url);
 		jobDataMap.put("method", method);
 		
-		if (JobManager.checkJobIsExist(jobName, groupName)) {
+		if (JobManager.checkExists(jobName, groupName)) {
 			JobManager.updateJob(jobName, groupName, cronExpression, triggerPriority, description, jobDataMap);
 		} else {
 			JobManager.addJob(jobName, groupName, cronExpression, triggerPriority, description, jobDataMap);

@@ -18,7 +18,7 @@ import com.ls.quartz.util.HttpUtil;
 public class HttpJob implements Job {
 	
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		System.out.println("[quartz任务调度系统] 执行" + context.getJobDetail().getKey().getName() + "任务, Time at " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
+		System.out.println("[quartz任务调度系统] 执行" + context.getJobDetail().getKey().getGroup() +"-"+ context.getJobDetail().getKey().getName() + "任务, Time at " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
 		JobDataMap jobData = context.getTrigger().getJobDataMap();
 		
 		// 手动立即执行时jobData为空
